@@ -1,0 +1,68 @@
+pipeline {
+    agent any
+    stages {
+        stage('Checkout') {
+            steps {
+                checkout scmGit(branches: [[name: '*/main']], extensions: [], userRemoteConfigs: [[url: 'https://github.com/simons-organization/SimonsSecondFork']])
+            }
+         }
+             stage('Build and Test') {
+            steps {
+                // Build and run tests using Gradle
+                dir('backend') {
+                    script {
+                        if (isUnix()) {
+                            sh './gradlew test'
+                        } else {
+                            bat 'gradlew.bat test'
+                        }
+                    }
+                }
+            }
+        }
+        
+        stage('Install Frontend Dependencies') {
+            steps {
+                // Install npm dependencies for the frontend
+                dir('frontend') {
+                    script {
+                        if (isUnix()) {
+                            sh 'npm install'
+                        } else {
+                            bat 'npm install'
+                        }
+                    }
+                }
+            }
+        }
+        
+        stage('Build Frontend') {
+            steps {
+                // Build the frontend
+                dir('frontend') {
+                    script {
+                        if (isUnix()) {
+                            sh 'npm run build'
+                        } else {
+                            bat 'npm run build'
+                        }
+                    }
+                }
+            }
+        }
+        
+        stage('Publish Test Results') {
+            steps {
+                // Publish JUnit test results
+                junit 'backend/build/test-results/test/*.xml'
+            }
+        }
+        
+        stage('Publish Coverage Report') {
+            steps {
+                // Publish JaCoCo coverage report
+                jacoco execPattern: 'backend/build/jacoco/test.exec', classPattern: 'backend/build/classes/java/main', sourcePattern: 'backend/src/main/java', exclusionPattern: '**/Test*.class'
+            }
+        }
+    }
+}
