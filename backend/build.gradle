@@ -40,3 +40,11 @@ jacocoTestReport {
 		xml.destination(file("${rootProject.projectDir}/target/site/jacoco/cov.xml"))
 	}
 }
+
+sonarqube {
+    properties {
+        property "sonar.projectKey", "DevOpsDemo-Backend"
+        property "sonar.host.url", "http://localhost:9000"
+        property "sonar.token", "sqp_d7417cab225b994c64712d9963271470489e7f91"
+    }
+}
